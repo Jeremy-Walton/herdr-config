@@ -9,6 +9,7 @@ Based on Gavin O'Melia's [herdr-config](https://github.com/gavinomelia/herdr-con
 - `herdr-app/keys.wt.json`: the Herdr key bindings for `wt`, to merge into `~/.config/herdr-app/keys.json`.
 - `herdr-app/layouts/islands.json` and `herdr-app/mods/islands-*`: my Herdr layout. Its status bar links to the portless servers running in the shown space.
 - `herdr-app/themes/cobalt2.json`: the dark theme I use with it.
+- `herdr-app/settings.json` and `herdr-app/sounds/silent.mp3`: my Herdr settings. The blocked-agent sound is silenced because a hook already plays one.
 
 ## What `wt` does
 
@@ -59,7 +60,7 @@ Merge `herdr-app/keys.wt.json` into `~/.config/herdr-app/keys.json`, changing ea
 For the layout, copy its files into Herdr's folder, then switch to it:
 
 ```sh
-cp -R ~/.config/wt/herdr-app/layouts ~/.config/wt/herdr-app/mods ~/.config/wt/herdr-app/themes ~/.config/herdr-app/
+cp -R ~/.config/wt/herdr-app/layouts ~/.config/wt/herdr-app/mods ~/.config/wt/herdr-app/themes ~/.config/wt/herdr-app/sounds ~/.config/wt/herdr-app/settings.json ~/.config/herdr-app/
 herdr-app do layout.switch --name islands
 herdr-app do app.theme --name cobalt2
 ```
