@@ -25,6 +25,8 @@ If the branch already has a worktree, `wt new` switches to its space. If it has 
 
 `wt setup` gives the worktree its own dev database (cloned from a snapshot of the main one), its own test databases for parallel specs, symlinked credentials keys, and clones of `node_modules` and built assets. Each worktree's databases are named in its `.env_overrides.rb`.
 
+On PostgreSQL 18 or later, `wt setup` and `wt snapshot` set `file_copy_method = clone` for their own session, so each new database shares its files with the source (APFS clones) and does not use a full copy. An 8 GB database clones in under a second and uses almost no disk space. The server's settings do not change. On an older Postgres, `wt` makes full copies. See [Instant database clones](https://boringsql.com/posts/instant-database-clones/) for how it works.
+
 | Command | Key | What it does |
 |---|---|---|
 | `wt new [target] [base]` | cmd+shift+t | New worktree space (cmd+alt+t uses Codex) |

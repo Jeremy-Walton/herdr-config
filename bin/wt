@@ -61,9 +61,17 @@ worktrees() {
 
 db_exists() { [ "$(psql -XAtc "select 1 from pg_database where datname = '$1'" postgres)" = 1 ]; }
 
+# file_copy_method = clone (PostgreSQL 18+) makes the copy share the source's files through APFS clones.
+# It is set for this session only, so the server's settings stay untouched. Older servers reject the
+# SET, and psql still runs the CREATE as a full copy and reports its result.
+copy_db() {
+  psql -Xq -c "set file_copy_method = clone" \
+    -c "create database \"$2\" template \"$1\" strategy file_copy" postgres 2> /dev/null
+}
+
 clone_db() {
   local source=$1 target=$2
-  psql -Xqc "create database \"$target\" template \"$source\" strategy file_copy" postgres 2> /dev/null ||
+  copy_db "$source" "$target" ||
     die "couldn't clone $source while it's in use. Stop the main checkout's server, worker, and console, run 'wt snapshot', then rerun 'wt setup'"
 }
 
@@ -550,10 +558,14 @@ cmd_prune() {
 }
 
 cmd_snapshot() {
+  # Copy under a temporary name first, so a failed copy leaves the old snapshot in place.
+  local fresh=${SNAPSHOT_DB}_new
   say "Refreshing $SNAPSHOT_DB from $DEV_DB"
-  psql -Xqc "drop database if exists \"$SNAPSHOT_DB\"" postgres
-  psql -Xqc "create database \"$SNAPSHOT_DB\" template \"$DEV_DB\" strategy file_copy" postgres 2> /dev/null ||
-    die "couldn't copy $DEV_DB while it's in use. Stop the main checkout's server, worker, and console, then rerun 'wt snapshot'"
+  PGOPTIONS=--client-min-messages=warning psql -Xqc "drop database if exists \"$fresh\"" postgres
+  copy_db "$DEV_DB" "$fresh" ||
+    die "couldn't copy $DEV_DB while it's in use, so $SNAPSHOT_DB was left as it was. Stop the main checkout's server, worker, and console, then rerun 'wt snapshot'"
+  PGOPTIONS=--client-min-messages=warning psql -Xqc "drop database if exists \"$SNAPSHOT_DB\"" postgres
+  psql -Xqc "alter database \"$fresh\" rename to \"$SNAPSHOT_DB\"" postgres
   echo "Done."
 }
 
