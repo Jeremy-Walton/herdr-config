@@ -7,6 +7,8 @@ Based on Gavin O'Melia's [herdr-config](https://github.com/gavinomelia/herdr-con
 - `bin/wt`: gives every branch its own worktree, Herdr space, databases, and browser URL.
 - `app/worktree_auto_login.rb`: a dev-only initializer that signs each worktree's browser straight in as one user.
 - `herdr-app/keys.wt.json`: the Herdr key bindings for `wt`, to merge into `~/.config/herdr-app/keys.json`.
+- `herdr-app/layouts/islands.json` and `herdr-app/mods/islands-*`: my Herdr layout. Its status bar links to the portless servers running in the shown space.
+- `herdr-app/themes/cobalt2.json`: the dark theme I use with it.
 
 ## What `wt` does
 
@@ -53,6 +55,16 @@ cp ~/.config/wt/wt.env.example ~/.config/wt/wt.env   # then fill it in
 ```
 
 Merge `herdr-app/keys.wt.json` into `~/.config/herdr-app/keys.json`, changing each `/path/to/your/app` to your app's main checkout.
+
+For the layout, copy its files into Herdr's folder, then switch to it:
+
+```sh
+cp -R ~/.config/wt/herdr-app/layouts ~/.config/wt/herdr-app/mods ~/.config/wt/herdr-app/themes ~/.config/herdr-app/
+herdr-app do layout.switch --name islands
+herdr-app do app.theme --name cobalt2
+```
+
+These are copies, so after changing the layout in Herdr, copy it back here before committing.
 
 ## Cleaning up
 
