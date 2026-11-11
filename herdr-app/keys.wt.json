@@ -1,0 +1,94 @@
+{
+  "global": {
+    "cmd-shift-t": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "wt",
+          "key",
+          "new"
+        ],
+        "place": "tab",
+        "folder": "/path/to/your/app",
+        "name": "new worktree"
+      }
+    },
+    "cmd-shift-s": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "wt",
+          "key",
+          "scratch"
+        ],
+        "place": "tab",
+        "folder": "/path/to/your/app",
+        "name": "scratch"
+      }
+    },
+    "cmd-shift-o": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "wt",
+          "key",
+          "open"
+        ],
+        "place": "tab",
+        "name": "open"
+      }
+    },
+    "cmd-alt-t": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "env",
+          "WT_AGENT=codex",
+          "wt",
+          "key",
+          "new"
+        ],
+        "place": "tab",
+        "folder": "/path/to/your/app",
+        "name": "new worktree (codex)"
+      }
+    },
+    "cmd-alt-w": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "wt",
+          "key",
+          "ls"
+        ],
+        "place": "tab",
+        "folder": "/path/to/your/app",
+        "name": "worktrees"
+      }
+    },
+    "cmd-alt-shift-w": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "wt",
+          "key",
+          "prune"
+        ],
+        "place": "tab",
+        "folder": "/path/to/your/app",
+        "name": "prune"
+      }
+    },
+    "cmd-shift-r": {
+      "command": "terminal.open",
+      "args": {
+        "argv": [
+          "wt",
+          "review"
+        ],
+        "place": "right",
+        "name": "review"
+      }
+    }
+  }
+}
