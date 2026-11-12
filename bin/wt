@@ -107,12 +107,12 @@ resume_flag() {
   return 0
 }
 
-# Agent on top, a shell along the bottom, and $WT_EDITOR (if set) to the agent's right.
+# Agent on the left, a shell on the right, and $WT_EDITOR (if set) under the agent.
 code_layout() {
   local pane=$1
-  herdr-app do pane.split --direction down --pane "$pane" > /dev/null
+  herdr-app do pane.split --direction right --pane "$pane" > /dev/null
   [ -z "${WT_EDITOR:-}" ] ||
-    herdr-app do pane.split --direction right --pane "$pane" --argv "$(json_array sh -c "$WT_EDITOR")" > /dev/null
+    herdr-app do pane.split --direction down --pane "$pane" --argv "$(json_array sh -c "$WT_EDITOR")" > /dev/null
   herdr-app do pane.focus --pane "$pane" > /dev/null
 }
 

@@ -16,7 +16,7 @@ Based on Gavin O'Melia's [herdr-config](https://github.com/gavinomelia/herdr-con
 `wt new` (cmd+shift+t) asks for a branch, a Linear issue (`ABC-1234`), or a PR (`pr:1234`), then:
 
 1. creates the worktree;
-2. opens a Herdr space with a **code** tab: the agent (Claude, or Codex with `WT_AGENT=codex`) on top, a shell along the bottom, and `$WT_EDITOR` to the right if it's set;
+2. opens a Herdr space with a **code** tab: the agent (Claude, or Codex with `WT_AGENT=codex`) on the left, a shell on the right, and `$WT_EDITOR` under the agent if it's set;
 3. opens a **server** tab that runs `wt setup`, then `wt serve`.
 
 For a Linear issue the agent starts by reading the issue. For a PR it starts by reading the PR.
