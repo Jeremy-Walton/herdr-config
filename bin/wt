@@ -5,18 +5,26 @@ set -euo pipefail
 
 SELF=$(readlink "$0" 2>/dev/null || echo "$0")
 WT_HOME=$(cd "$(dirname "$SELF")/.." && pwd)
-WT_CONFIG=${WT_CONFIG:-$WT_HOME/wt.env}
-[ -f "$WT_CONFIG" ] || { echo "wt: no settings at $WT_CONFIG; copy $WT_HOME/wt.env.example there and fill it in" >&2; exit 1; }
-# shellcheck source=/dev/null
-. "$WT_CONFIG"
-DB_PREFIX=${WT_DB_PREFIX:?set WT_DB_PREFIX in $WT_CONFIG}
-DEV_DB=${DB_PREFIX}_development
-SNAPSHOT_DB=${DB_PREFIX}_snapshot
-APP_NAME=${WT_APP:?set WT_APP in $WT_CONFIG}
-TICKET_PREFIX=${WT_TICKET_PREFIX:-}
-IDLE_DAYS=${WT_IDLE_DAYS:-14}
-AUTO_LOGIN_SOURCE=${WT_AUTO_LOGIN_SOURCE:-$WT_HOME/app/worktree_auto_login.rb}
 AUTO_LOGIN_TARGET=config/initializers/worktree_auto_login.rb
+
+# Settings are per project, keyed by the main checkout's folder name, so one project's database
+# prefix never reaches another project's checkouts (wt gc would drop the other project's databases).
+load_config() {
+  if [ -z "${WT_CONFIG:-}" ]; then
+    git rev-parse --git-dir > /dev/null 2>&1 || die "run this in a git checkout of a project"
+    WT_CONFIG=$WT_HOME/projects/$(basename "$(main_checkout)").env
+  fi
+  [ -f "$WT_CONFIG" ] || die "no settings at $WT_CONFIG; copy $WT_HOME/wt.env.example there and fill it in"
+  # shellcheck source=/dev/null
+  . "$WT_CONFIG"
+  DB_PREFIX=${WT_DB_PREFIX:?set WT_DB_PREFIX in $WT_CONFIG}
+  DEV_DB=${DB_PREFIX}_development
+  SNAPSHOT_DB=${DB_PREFIX}_snapshot
+  APP_NAME=${WT_APP:?set WT_APP in $WT_CONFIG}
+  TICKET_PREFIX=${WT_TICKET_PREFIX:-}
+  IDLE_DAYS=${WT_IDLE_DAYS:-14}
+  AUTO_LOGIN_SOURCE=${WT_AUTO_LOGIN_SOURCE:-$WT_HOME/app/worktree_auto_login.rb}
+}
 
 REVIEW_PROMPT='Review this branch against %s: the committed diff from the merge base plus any uncommitted changes. Another agent wrote it. Apply AGENTS.md and the docs/conventions files that match the changed paths. Do not edit files; running targeted specs is fine. Report findings ranked by severity, each with file:line, the failing scenario, and a suggested fix. If nothing is worth fixing, say so plainly.'
 ISSUE_PROMPT='Read Linear issue %s with get_issue and list_comments. Summarize what it asks for and any open questions, then wait for instructions.'
@@ -588,7 +596,7 @@ usage: wt <command>
   review [base]           Start Codex reviewing this branch against base (default main), read-only
   rm [--force] <branch>   Close the space, remove the checkout, drop its databases; keeps the branch
   prune                   Remove clean worktrees whose PR merged and delete their branches; offer to
-                          remove ones whose PR closed or that have no PR and sat idle for $IDLE_DAYS days;
+                          remove ones whose PR closed or that have no PR and sat idle for WT_IDLE_DAYS days;
                           delete branches without a worktree whose PR merged; then gc
   gc [--dry-run]          Drop every database no checkout uses, however its checkout was removed
   snapshot                Refresh the idle dev-database copy new worktrees clone from
@@ -600,6 +608,9 @@ EOF
 command=${1:-}
 [ $# -eq 0 ] || shift
 case "$command" in
-  key | new | scratch | layout | setup | serve | open | ls | review | rm | prune | gc | snapshot) "cmd_$command" "$@" ;;
+  key | new | scratch | layout | setup | serve | open | ls | review | rm | prune | gc | snapshot)
+    load_config
+    "cmd_$command" "$@"
+    ;;
   *) usage ;;
 esac

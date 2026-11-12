@@ -54,10 +54,13 @@ Run `wt` with no arguments for the full help.
 ```sh
 git clone <this repo> ~/.config/wt
 ln -s ~/.config/wt/bin/wt ~/.local/bin/wt
-cp ~/.config/wt/wt.env.example ~/.config/wt/wt.env   # then fill it in
+mkdir -p ~/.config/wt/projects
+cp ~/.config/wt/wt.env.example ~/.config/wt/projects/<app>.env   # then fill it in
 ```
 
-Merge `herdr-app/keys.wt.json` into `~/.config/herdr-app/keys.json`, changing each `/path/to/your/app` to your app's main checkout.
+`<app>` is the folder name of the app's main checkout. `wt` reads the file for the checkout it runs in, so each app keeps its own database prefix and URL.
+
+Merge `herdr-app/keys.wt.json` into `~/.config/herdr-app/keys.json`. The keys run `wt` in the focused terminal's folder, so they act on the app that terminal is in.
 
 For the layout, copy its files into Herdr's folder, then switch to it:
 

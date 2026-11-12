@@ -9,7 +9,6 @@
           "new"
         ],
         "place": "tab",
-        "folder": "/path/to/your/app",
         "name": "new worktree"
       }
     },
@@ -22,7 +21,6 @@
           "scratch"
         ],
         "place": "tab",
-        "folder": "/path/to/your/app",
         "name": "scratch"
       }
     },
@@ -49,7 +47,6 @@
           "new"
         ],
         "place": "tab",
-        "folder": "/path/to/your/app",
         "name": "new worktree (codex)"
       }
     },
@@ -62,7 +59,6 @@
           "ls"
         ],
         "place": "tab",
-        "folder": "/path/to/your/app",
         "name": "worktrees"
       }
     },
@@ -75,7 +71,6 @@
           "prune"
         ],
         "place": "tab",
-        "folder": "/path/to/your/app",
         "name": "prune"
       }
     },
