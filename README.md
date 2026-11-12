@@ -7,7 +7,7 @@ Based on Gavin O'Melia's [herdr-config](https://github.com/gavinomelia/herdr-con
 - `bin/wt`: gives every branch its own worktree, Herdr space, databases, and browser URL.
 - `app/worktree_auto_login.rb`: a dev-only initializer that signs each worktree's browser straight in as one user.
 - `herdr-app/keys.wt.json`: the Herdr key bindings for `wt`, to merge into `~/.config/herdr-app/keys.json`.
-- `herdr-app/layouts/islands.json` and `herdr-app/mods/islands-*`: my Herdr layout. Its status bar links to the portless servers running in the shown space.
+- `herdr-app/layouts/islands.json` and `herdr-app/mods/islands-*`: my Herdr layout. Its status bar links to the portless servers running in the shown space and to the open PR for its branch.
 - `herdr-app/themes/cobalt2.json`: the dark theme I use with it.
 - `herdr-app/settings.json` and `herdr-app/sounds/silent.mp3`: my Herdr settings. The blocked-agent sound is silenced because a hook already plays one.
 

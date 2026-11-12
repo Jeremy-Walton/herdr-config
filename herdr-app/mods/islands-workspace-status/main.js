@@ -7,6 +7,9 @@ import { spaces, agents, panes, theme, shared, props, run, exec, readTextFile, h
 const portless = (file) => readTextFile(`${home()}/.portless/${file}`);
 const inside = (dir, root) => dir === root || dir.startsWith(root + "/");
 
+// gh calls the network, so a branch's PR is looked up at most once a minute.
+const PR_TTL = 60000;
+
 // Rough width of 11.8 px Geist text, measured from screenshots. A bit generous so nothing clips.
 const CHAR_PX = 6.1;
 
@@ -20,8 +23,41 @@ const islandFill = (c) => {
 export default class WorkspaceStatus extends View {
   init(_props, cx) {
     this.servers = []; // [{ url, cwd }]
-    cx.timer.every(5000, (cx) => this.refreshServers(cx));
+    this.prs = {}; // "<dir>\0<branch>" -> { pr: { number, url, isDraft } | null, at }
+    cx.timer.every(5000, (cx) => { this.refreshServers(cx); this.refreshPr(cx); });
     this.refreshServers(cx);
+    this.refreshPr(cx);
+  }
+
+  // The checkout behind the space's branch: its first terminal on that branch.
+  prKey(space) {
+    if (!space || space.machine || !space.branch) return null;
+    const tabs = new Set(space.tabs.map((t) => t.id));
+    const pane = panes().find((p) => tabs.has(p.tab) && p.cwd && p.branch === space.branch);
+    return pane ? `${pane.cwd}\0${space.branch}` : null;
+  }
+
+  refreshPr(cx) {
+    const key = this.prKey(spaces().find((s) => s.active));
+    if (!key || this.prLoading) return;
+    const cached = this.prs[key];
+    if (cached && Date.now() - cached.at < PR_TTL) return;
+    const [cwd, branch] = key.split("\0");
+    this.prLoading = true;
+    cx.spawn(async (cx) => {
+      try {
+        const r = await exec("gh", ["pr", "view", branch, "--json", "number,url,state,isDraft"], { cwd });
+        const json = r.code === 0 ? JSON.parse(r.stdout) : null;
+        const pr = json?.state === "OPEN" ? { number: json.number, url: json.url, isDraft: json.isDraft } : null;
+        const changed = JSON.stringify(pr) !== JSON.stringify(cached?.pr ?? null);
+        this.prs[key] = { pr, at: Date.now() };
+        if (changed || !cached) cx.notify();
+      } catch {
+        // gh missing or offline: try again next tick.
+      } finally {
+        this.prLoading = false;
+      }
+    });
   }
 
   refreshServers(cx) {
@@ -66,16 +102,19 @@ export default class WorkspaceStatus extends View {
     const t = theme();
     const space = spaces().find(s => s.active);
     const servers = this.spaceServers(space);
+    const key = this.prKey(space);
+    const pr = key ? this.prs[key]?.pr : null;
+    const prText = pr && `#${pr.number}${pr.isDraft ? " draft" : ""}`;
     const host = (url) => url.replace(/^https?:\/\//, "");
     const list = agents();
     const needs = list.filter(a => a.status === "blocked").length;
     // props.fit: "<node id>" resizes that layout node to this card's content width.
     const fit = props()?.fit;
     if (fit) {
-      const texts = [space?.machine ?? "This computer", space?.branch, `${list.length} agents`, needs > 0 && `· ${needs} needs you`, ...servers.map((s) => host(s.url))].filter(Boolean);
+      const texts = [space?.machine ?? "This computer", space?.branch, `${list.length} agents`, needs > 0 && `· ${needs} needs you`, prText, ...servers.map((s) => host(s.url))].filter(Boolean);
       const chars = texts.reduce((n, s) => n + s.length, 0);
       // padding 28, border 2, icons 19 each, dot 12, gaps 16 between items and 6 before "needs you".
-      const icons = (space?.branch ? 2 : 1) + servers.length;
+      const icons = (space?.branch ? 2 : 1) + (pr ? 1 : 0) + servers.length;
       const px = Math.ceil(30 + 19 * icons + 12 + 16 * icons + (needs > 0 ? 6 : 0) + chars * CHAR_PX);
       if (px !== this.fitPx) { this.fitPx = px; run("layout.resize", { id: fit, px }); }
     }
@@ -85,6 +124,11 @@ export default class WorkspaceStatus extends View {
       .when(Boolean(space?.branch), el => el.child(label("branch", space.branch, t.accent)))
       .child(h_flex().gap(6).items_center().child(div().size(6).rounded(3).bg(needs > 0 ? t.blocked : list.length > 0 ? t.done : t.dim)).child(`${list.length} agents`)
         .when(needs > 0, el => el.child(div().text_color(t.blocked).child(`· ${needs} needs you`))))
+      .when(Boolean(pr), el => el.child(
+        h_flex().id("pr").gap(6).items_center().cursor_pointer().hover((st) => st.text_color(t.foreground))
+          .on_click(() => { exec("open", [pr.url]).catch(() => {}); })
+          .child(svg("mods/islands-workspace-status/git-pull-request.svg").size(13).text_color(pr.isDraft ? t.dim : t.accent))
+          .child(prText)))
       .children(servers.map((s) =>
         h_flex().id(`server-${s.url}`).gap(6).items_center().cursor_pointer().hover((st) => st.text_color(t.foreground))
           .on_click(() => { exec("open", [s.url]).catch(() => {}); })
